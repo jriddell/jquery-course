@@ -62,7 +62,7 @@ if (isset($_POST['first_name'])) {
     for ($i = 1; $i <= 9; $i++) {
         if (isset($_POST['year'.$i])) {
             $year = htmlentities($_POST['year'.$i]);
-            $description = htmlentities($_POST['education_institution'.$i]);
+            $description = htmlentities($_POST['description'.$i]);
             $stmt = $dbh->prepare('INSERT INTO Position
                 (profile_id, rank, year, description) 
             VALUES ( :pid, :rank, :year, :desc)');
@@ -120,10 +120,12 @@ if (isset($_SESSION['message'])) {
 
 <p>Education: <input type="button" value="+" id="addeducation" /></p>
 <div id="educationforms">
+<!--
 <div id="education1">
 <p>Year: <input type="text" name="education_year1" /> <input type="button" value="-" onclick="$('#education1').empty()" /></p>
 <p><input type="text" name="education_institution1" class="institution" /></p>
 </div>
+-->
 </div>
 
 <p>Position: <input type="button" value="+" id="addposition" /></p>
@@ -155,7 +157,7 @@ $(document).ready(function() {
     })
 });
 
-education_count = 1;
+education_count = 0;
 $(document).ready(function() {
     $('#addeducation').click(function() {
         education_count++;

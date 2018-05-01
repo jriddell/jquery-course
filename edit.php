@@ -50,6 +50,23 @@ if (isset($_POST['profile_id'])) {
             $rank++;
         }
     }
+    $dbh->query('DELETE FROM Education WHERE profile_id='.$profile_id);
+    for ($i = 1; $i <= 9; $i++) {
+        if (isset($_POST['education_year'.$i])) {
+            $education_year = htmlentities($_POST['education_year'.$i]);
+            $education_institution = htmlentities($_POST['education_institution'.$i]);
+            $instituion_id = get_institution_id($education_institution);
+            $stmt = $dbh->prepare('INSERT INTO Education
+                (profile_id, institution_id, rank, year) 
+            VALUES ( :pid, :institution_id, :rank, :year)');
+            $stmt->execute(array(
+                ':pid' => $profile_id,
+                ':institution_id' => $instituion_id,
+                ':rank' => $i,
+                ':year' => $education_year)
+            );
+        }
+    }
     $_SESSION['message'] = 'Profile Edited';
     header("Location: index.php");
     return;
@@ -93,6 +110,23 @@ value="<?php print $record['headline']; ?>"
 value="<?php print $record['profile_id']; ?>"
 />
 
+<p>Education: <input type="button" value="+" id="addeducation" /></p>
+<div id="educationforms">
+<?php
+    $sql = 'SELECT * FROM Profile,Education,Institution WHERE Education.profile_id='. $_GET['profile_id'].' AND Education.profile_id=Profile.profile_id AND Institution.institution_id=Education.institution_id ORDER BY Education.rank';
+    $education_count = 1;
+    foreach ($dbh->query($sql) as $row) {
+?>
+<div id="education<?=$education_count?>">
+<p>Year: <input type="text" name="education_year<?=$education_count?>" value="<?=$row['year']?>" /> <input type="button" value="-" onclick="$('#education<?=$education_count?>').empty()" /></p> 
+<p><input type="text" name="education_institution<?=$education_count?>" value="<?=$row['name']?>" class="institution" /></p>
+</div>
+<?php
+        $education_count++;
+    }
+?>
+</div>
+
 <p>Position: <input type="button" value="+" id="addposition" /></p>
 <div id="positionforms">
 <?php
@@ -129,6 +163,26 @@ $(document).ready(function() {
                                     <p><textarea name="description'+count+'" rows="10" cols="100"></textarea></p></div>');
     })
 });
+
+
+education_count = <?=$education_count?>;
+$(document).ready(function() {
+    $('#addeducation').click(function() {
+        education_count++;
+        if (education_count > 9) {
+            alert('Only 9 institutions allowed');
+            return false;
+        }
+        console.log('XXX Add institution clicked:'+education_count);
+        $('#educationforms').append('<div id="education'+education_count+'"> <p>Year: <input type="text" name="education_year'+education_count+'" /> <input type="button" value="-" onclick="$(\'#education'+education_count+'\').empty()" /></p>\
+                                    <p><input type="text" name="education_institution'+education_count+'" class="institution" /></p></div>');
+    })
+});
+
+$(document).ready(function() {
+    $('.institution').autocomplete({source: "schools.php"});
+});
+
 </script>
 
 <?php
