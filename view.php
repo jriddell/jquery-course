@@ -16,12 +16,22 @@ print "<p>Headline: " . $record['headline'] . "</p>";
 print "<p>Summary: " . $record['summary'] . "</p>";
 
 print "<div style='margin-left: 2em'>";
-$sql = 'SELECT * FROM Position WHERE profile_id='. $_GET['profile_id'];
+$sql = 'SELECT * FROM Institution,Profile,Education WHERE Institution.institution_id=Education.institution_id AND Profile.profile_id=Education.profile_id AND Profile.profile_id='. $_GET['profile_id'].' ORDER BY Rank';
+print "<h3>Education</h3>";
 foreach ($dbh->query($sql) as $row) {
-    print "<h3>Position</h3>";
-    print "<p>Rank: " . $row['rank'] . "</p>\n";
-    print "<p>Year: " . $row['year'] . "</p>\n";
-    print "<p>Description: " . $row['description'] . "</p>\n";
+    print "<ul>";
+    print "<li>". $row['year'] . ": " . $row['name'] . "</li>\n";
+    print "</ul>";
+}
+print "</div>";
+
+print "<div style='margin-left: 2em'>";
+$sql = 'SELECT * FROM Position WHERE profile_id='. $_GET['profile_id'].' ORDER BY Rank';
+print "<h3>Position</h3>";
+foreach ($dbh->query($sql) as $row) {
+    print "<ul>";
+    print "<li>". $row['year'] . ": " . $row['description'] . "</li>\n";
+    print "</ul>";
 }
 
 ?>

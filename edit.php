@@ -24,12 +24,32 @@ if (isset($_POST['profile_id'])) {
         ' WHERE profile_id='.$_POST['profile_id']);
     $stmt->execute(array(
         ':uid' => $_SESSION['user_id'],
-        ':fn' => $_POST['first_name'],
-        ':ln' => $_POST['last_name'],
-        ':em' => $_POST['email'],
-        ':he' => $_POST['headline'],
-        ':su' => $_POST['summary'])
+        ':fn' => htmlentities($_POST['first_name']),
+        ':ln' => htmlentities($_POST['last_name']),
+        ':em' => htmlentities($_POST['email']),
+        ':he' => htmlentities($_POST['headline']),
+        ':su' => htmlentities($_POST['summary']))
     );
+    $profile_id = $_POST['profile_id'];
+    $dbh->query('DELETE FROM Position WHERE profile_id='.$profile_id);
+    $rank = 0;
+    for ($i = 1; $i <= 9; $i++) {
+        if (isset($_POST['year'.$i])) {
+            $year = htmlentities($_POST['year'.$i]);
+            print "year " . $year;
+            $description = htmlentities($_POST['description'.$i]);
+            $stmt = $dbh->prepare('INSERT INTO Position
+                (profile_id, rank, year, description) 
+            VALUES ( :pid, :rank, :year, :desc)');
+            $stmt->execute(array(
+                ':pid' => $profile_id,
+                ':rank' => $rank,
+                ':year' => $year,
+                ':desc' => $description)
+            );
+            $rank++;
+        }
+    }
     $_SESSION['message'] = 'Profile Edited';
     header("Location: index.php");
     return;
@@ -72,10 +92,44 @@ value="<?php print $record['headline']; ?>"
 <input type="hidden" name="profile_id"
 value="<?php print $record['profile_id']; ?>"
 />
-<input type="submit" value="Save">
+
+<p>Position: <input type="button" value="+" id="addposition" /></p>
+<div id="positionforms">
+<?php
+    $sql = 'SELECT * FROM Position WHERE profile_id='. $_GET['profile_id'].' ORDER BY Rank';
+    $count = 1;
+    foreach ($dbh->query($sql) as $row) {
+?>
+<div id="position<?=$count?>">
+<p>Year: <input type="text" name="year<?=$count?>" value="<?=$row['year']?>" /> <input type="button" value="-" onclick="$('#position<?=$count?>').empty()" /></p> <p><textarea name="description<?=$count?>" rows="10" cols="100"><?=$row['description']?></textarea></p>
+</div>
+<?php
+        $count++;
+    }
+?>
+</div>
+
+<p>
+<input type="submit" value="Save Edit">
 <input type="submit" name="cancel" value="Cancel">
 </p>
 </form>
+
+<script>
+count = <?=$count?>;
+$(document).ready(function() {
+    $('#addposition').click(function() {
+        count++;
+        if (count > 9) {
+            alert('Only 9 positions allowed');
+            return false;
+        }
+        console.log('XXX Addposition clicked:'+count);
+        $('#positionforms').append('<div id="position'+count+'" <p>Year: <input type="text" name="year'+count+'" /> <input type="button" value="-" onclick="$(\'#position'+count+'\').empty()" /></p>\
+                                    <p><textarea name="description'+count+'" rows="10" cols="100"></textarea></p></div>');
+    })
+});
+</script>
 
 <?php
 htmltail();
